@@ -412,6 +412,97 @@
       color: var(--muted);
       opacity: 0.85;
     }
+
+    /* Add Round Form */
+
+    .round-form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.5rem 0.6rem;
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 900px) {
+      .round-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 550px) {
+      .round-form-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .field-group label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+    }
+
+    .field-group input {
+      border-radius: 999px;
+      border: 1px solid rgba(70, 86, 120, 0.9);
+      background: rgba(4, 8, 14, 0.95);
+      padding: 0.35rem 0.65rem;
+      color: var(--text);
+      font-size: 0.78rem;
+      outline: none;
+    }
+
+    .field-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(53, 200, 122, 0.45);
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 0.5rem;
+      margin-top: 0.8rem;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 0.45rem 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(
+        135deg,
+        rgba(53, 200, 122, 1),
+        rgba(32, 150, 96, 1)
+      );
+      color: #020305;
+      font-weight: 600;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(4, 8, 14, 0.95);
+      color: var(--muted);
+      border: 1px solid rgba(90, 110, 145, 0.9);
+    }
+
+    .small-hint {
+      margin-top: 0.5rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
@@ -531,8 +622,127 @@
             </div>
 
             <div class="footer-note">
-              Tip: later, you can hook this table to a form or CSV upload so you can paste in full scorecards from your Local Golf Scorebook.
+              Tip: later, you can hook this table to a CSV upload or your Local Golf Scorebook.
             </div>
+          </div>
+        </article>
+
+        <!-- Add Round Form -->
+        <article class="card" style="margin-top: 1.4rem;">
+          <div class="card-inner">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Add Round</div>
+                <div class="card-subtitle">Log a new round and update your stats instantly.</div>
+              </div>
+              <span class="badge">Input</span>
+            </div>
+
+            <form id="roundForm">
+              <div class="round-form-grid">
+                <div class="field-group">
+                  <label for="roundDate">Date</label>
+                  <input type="date" id="roundDate" required />
+                </div>
+                <div class="field-group">
+                  <label for="roundCourse">Course</label>
+                  <input type="text" id="roundCourse" placeholder="Diamond Hills CC" required />
+                </div>
+                <div class="field-group">
+                  <label for="roundTees">Tees</label>
+                  <input type="text" id="roundTees" placeholder="White" />
+                </div>
+                <div class="field-group">
+                  <label for="roundScore">Score</label>
+                  <input type="number" id="roundScore" min="40" max="150" required />
+                </div>
+
+                <div class="field-group">
+                  <label for="firHit">FIR Hit</label>
+                  <input type="number" id="firHit" min="0" max="14" />
+                </div>
+                <div class="field-group">
+                  <label for="firPossible">FIR Possible</label>
+                  <input type="number" id="firPossible" min="0" max="14" placeholder="14" />
+                </div>
+                <div class="field-group">
+                  <label for="girHit">GIR Hit</label>
+                  <input type="number" id="girHit" min="0" max="18" />
+                </div>
+                <div class="field-group">
+                  <label for="girPossible">GIR Possible</label>
+                  <input type="number" id="girPossible" min="0" max="18" placeholder="18" />
+                </div>
+
+                <div class="field-group">
+                  <label for="upDownSuccess">Up & Down Made</label>
+                  <input type="number" id="upDownSuccess" min="0" />
+                </div>
+                <div class="field-group">
+                  <label for="upDownAttempts">Up & Down Attempts</label>
+                  <input type="number" id="upDownAttempts" min="0" />
+                </div>
+                <div class="field-group">
+                  <label for="sandSuccess">Sand Saves Made</label>
+                  <input type="number" id="sandSuccess" min="0" />
+                </div>
+                <div class="field-group">
+                  <label for="sandAttempts">Sand Save Attempts</label>
+                  <input type="number" id="sandAttempts" min="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="putts">Putts</label>
+                  <input type="number" id="putts" min="10" max="60" />
+                </div>
+                <div class="field-group">
+                  <label for="threePutts">3-Putts</label>
+                  <input type="number" id="threePutts" min="0" max="18" />
+                </div>
+                <div class="field-group">
+                  <label for="penalties">Penalties</label>
+                  <input type="number" id="penalties" min="0" max="20" />
+                </div>
+
+                <div class="field-group">
+                  <label for="holes">Holes</label>
+                  <input type="number" id="holes" min="9" max="18" placeholder="18" />
+                </div>
+
+                <div class="field-group">
+                  <label for="par3Score">Par 3 Score</label>
+                  <input type="number" id="par3Score" min="0" />
+                </div>
+                <div class="field-group">
+                  <label for="par3Holes">Par 3 Holes</label>
+                  <input type="number" id="par3Holes" min="0" placeholder="4" />
+                </div>
+                <div class="field-group">
+                  <label for="par4Score">Par 4 Score</label>
+                  <input type="number" id="par4Score" min="0" />
+                </div>
+                <div class="field-group">
+                  <label for="par4Holes">Par 4 Holes</label>
+                  <input type="number" id="par4Holes" min="0" placeholder="10" />
+                </div>
+                <div class="field-group">
+                  <label for="par5Score">Par 5 Score</label>
+                  <input type="number" id="par5Score" min="0" />
+                </div>
+                <div class="field-group">
+                  <label for="par5Holes">Par 5 Holes</label>
+                  <input type="number" id="par5Holes" min="0" placeholder="4" />
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-primary">Add Round</button>
+                <button type="button" id="resetRoundsBtn" class="btn-secondary">Reset to Sample Data</button>
+              </div>
+              <div class="small-hint">
+                Only date, course, and score are required. Leave others blank if you don't track them for a round.
+              </div>
+            </form>
           </div>
         </article>
       </section>
@@ -556,7 +766,7 @@
           </div>
         </article>
 
-        <!-- Category breakdown (optional starter) -->
+        <!-- Category breakdown -->
         <article class="card" style="margin-top: 1.4rem;">
           <div class="card-inner">
             <div class="card-header">
