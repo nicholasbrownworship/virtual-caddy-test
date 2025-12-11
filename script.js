@@ -2,7 +2,7 @@
 
 const STORAGE_KEY = "golf_dashboard_rounds_v1";
 
-// ---------- SAMPLE DATA (used as fallback / reset) ----------
+// ---------- SAMPLE DATA ----------
 
 const defaultRounds = [
   {
@@ -94,43 +94,81 @@ const playerProfile = {
     "Comfortable hitting knockdown wedges, prefers conservative lines off the tee when hazards are in play."
 };
 
-// ---------- PRACTICE FOCUS RULES ----------
+// ---------- BAG DATA (for the caddy) ----------
+// Tweak these to match your real yardages.
 
-const practiceFocusRules = [
+const bag = [
   {
-    id: "focus_short_game",
-    conditions: {
-      up_and_down_percentage_max: 40, // %
-      gir_percentage_min: 35 // %
-    },
-    recommendation: "Short Game Priority",
-    details:
-      "GIR is serviceable, but you're not converting misses. Spend ~60% of practice on chips, pitches, and bunker play inside 30 yards.",
-    metricLabel: "Up & Down %",
-    metricKey: "up_and_down_percentage"
+    club: "Driver",
+    type: "wood",
+    stock_carry: 280,
+    max_carry: 295
   },
   {
-    id: "focus_tee_ball",
-    conditions: {
-      fir_percentage_max: 50,
-      penalty_strokes_per_round_min: 1.5
-    },
-    recommendation: "Tee Shot & Target Selection",
-    details:
-      "Too many missed fairways and penalties. Dial in a fairway finder and tighten when you choose driver vs. 3-wood/hybrid.",
-    metricLabel: "FIR & Penalties",
-    metricKeys: ["fir_percentage", "penalty_strokes_per_round"]
+    club: "3 Wood",
+    type: "wood",
+    stock_carry: 240,
+    max_carry: 255
   },
   {
-    id: "focus_putting",
-    conditions: {
-      three_putt_rate_min: 0.8
-    },
-    recommendation: "Lag Putting & 6-Footers",
-    details:
-      "Three-putts are bleeding strokes. Work on 30–40 ft lag putts and 4–8 ft make range to clean up the card.",
-    metricLabel: "3-Putt Rate",
-    metricKey: "three_putt_rate"
+    club: "4 Hybrid",
+    type: "hybrid",
+    stock_carry: 215,
+    max_carry: 225
+  },
+  {
+    club: "5 Iron",
+    type: "iron",
+    stock_carry: 190,
+    max_carry: 200
+  },
+  {
+    club: "6 Iron",
+    type: "iron",
+    stock_carry: 175,
+    max_carry: 185
+  },
+  {
+    club: "7 Iron",
+    type: "iron",
+    stock_carry: 155,
+    max_carry: 165
+  },
+  {
+    club: "8 Iron",
+    type: "iron",
+    stock_carry: 145,
+    max_carry: 155
+  },
+  {
+    club: "9 Iron",
+    type: "iron",
+    stock_carry: 135,
+    max_carry: 145
+  },
+  {
+    club: "Pitching Wedge",
+    type: "wedge",
+    stock_carry: 125,
+    max_carry: 135
+  },
+  {
+    club: "Gap Wedge",
+    type: "wedge",
+    stock_carry: 110,
+    max_carry: 120
+  },
+  {
+    club: "Sand Wedge",
+    type: "wedge",
+    stock_carry: 95,
+    max_carry: 105
+  },
+  {
+    club: "Lob Wedge",
+    type: "wedge",
+    stock_carry: 80,
+    max_carry: 90
   }
 ];
 
@@ -259,64 +297,7 @@ function formatNumber(val, decimals = 1) {
   return val.toFixed(decimals);
 }
 
-// ---------- PRACTICE FOCUS ENGINE ----------
-
-function doesSummaryMatchConditions(summary, conditions) {
-  if (!conditions) return true;
-
-  if (
-    conditions.up_and_down_percentage_max !== undefined &&
-    summary.up_and_down_percentage > conditions.up_and_down_percentage_max
-  ) {
-    return false;
-  }
-
-  if (
-    conditions.gir_percentage_min !== undefined &&
-    summary.gir_percentage < conditions.gir_percentage_min
-  ) {
-    return false;
-  }
-
-  if (
-    conditions.fir_percentage_max !== undefined &&
-    summary.fir_percentage > conditions.fir_percentage_max
-  ) {
-    return false;
-  }
-
-  if (
-    conditions.penalty_strokes_per_round_min !== undefined &&
-    summary.penalty_strokes_per_round <
-      conditions.penalty_strokes_per_round_min
-  ) {
-    return false;
-  }
-
-  if (
-    conditions.three_putt_rate_min !== undefined &&
-    summary.three_putt_rate < conditions.three_putt_rate_min
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
-function getPracticeFocus(summary) {
-  if (!summary) return [];
-
-  const matches = [];
-  practiceFocusRules.forEach((rule) => {
-    if (doesSummaryMatchConditions(summary, rule.conditions)) {
-      matches.push(rule);
-    }
-  });
-
-  return matches;
-}
-
-// ---------- DOM BINDING ----------
+// ---------- DOM BINDING: PROFILE & STATS ----------
 
 function updateProfileUI(profile, summary) {
   const initials =
@@ -450,82 +431,7 @@ function updateRoundsTable(roundsArr) {
   badge.textContent = `${roundsArr.length} Round${roundsArr.length === 1 ? "" : "s"}`;
 }
 
-function updatePracticeFocusUI(summary, focusRulesMatched) {
-  const container = document.getElementById("focusList");
-  container.innerHTML = "";
-
-  if (!summary) {
-    container.innerHTML =
-      "<p class='focus-body'>Add at least one round to generate practice recommendations.</p>";
-    return;
-  }
-
-  if (!focusRulesMatched.length) {
-    const div = document.createElement("div");
-    div.className = "focus-card";
-    div.innerHTML = `
-      <div class="focus-title-row">
-        <div class="focus-title">Balanced Bag</div>
-        <span class="focus-tag">Keep Going</span>
-      </div>
-      <div class="focus-body">
-        None of the current rules are firing hard, which means you're reasonably balanced. 
-        Keep tracking rounds so the Virtual Caddy can spot a clear weakness to exploit.
-      </div>
-    `;
-    container.appendChild(div);
-    return;
-  }
-
-  focusRulesMatched.forEach((rule) => {
-    const div = document.createElement("div");
-    div.className = "focus-card";
-
-    let metricLine = "";
-    if (rule.metricKey && summary[rule.metricKey] !== undefined) {
-      const val = summary[rule.metricKey];
-      const formatted = formatNumber(val, 1);
-      metricLine = `<div class="focus-metric"><strong>${rule.metricLabel}:</strong> ${formatted}</div>`;
-    } else if (rule.metricKeys && rule.metricKeys.length) {
-      const parts = rule.metricKeys
-        .map((key) => {
-          const label =
-            key === "fir_percentage"
-              ? "FIR"
-              : key === "penalty_strokes_per_round"
-              ? "Penalties/Rd"
-              : key;
-          const val = summary[key];
-          if (val === undefined) return null;
-          const formatted = key.includes("percentage")
-            ? formatPercent(val, 0)
-            : formatNumber(val, 1);
-          return `${label}: ${formatted}`;
-        })
-        .filter(Boolean);
-      if (parts.length) {
-        metricLine = `<div class="focus-metric"><strong>${rule.metricLabel}:</strong> ${parts.join(
-          " · "
-        )}</div>`;
-      }
-    }
-
-    div.innerHTML = `
-      <div class="focus-title-row">
-        <div class="focus-title">${rule.recommendation}</div>
-        <span class="focus-tag">Priority Block</span>
-      </div>
-      <div class="focus-body">
-        ${rule.details}
-      </div>
-      ${metricLine}
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-// ---------- FORM HANDLING ----------
+// ---------- FORM HELPERS (Add Round) ----------
 
 function valNum(id, fallback = 0) {
   const el = document.getElementById(id);
@@ -541,7 +447,7 @@ function valStr(id, fallback = "") {
   return v || fallback;
 }
 
-function clearForm() {
+function clearRoundForm() {
   const form = document.getElementById("roundForm");
   if (form) form.reset();
 }
@@ -611,14 +517,261 @@ function handleRoundFormSubmit(event) {
   saveRoundsToStorage();
 
   const summary = calcSummary(rounds);
-  const focus = getPracticeFocus(summary);
 
   updateProfileUI(playerProfile, summary);
   updateSummaryStatsUI(summary);
   updateRoundsTable(rounds);
-  updatePracticeFocusUI(summary, focus);
 
-  clearForm();
+  clearRoundForm();
+}
+
+// ---------- VIRTUAL CADDY ENGINE ----------
+
+function getAdjustedDistance(distance, windDir, windSpeed, lie) {
+  let adjusted = distance;
+
+  // Wind adjustment – rough but practical
+  if (windDir === "into") {
+    adjusted += windSpeed * 0.8; // into wind: plays longer
+  } else if (windDir === "down") {
+    adjusted -= windSpeed * 0.5; // downwind: plays shorter
+  }
+
+  // Lie penalty
+  if (lie === "rough") {
+    adjusted += 5; // ball comes out slower
+  } else if (lie === "sand") {
+    adjusted += 10;
+  } else if (lie === "recovery") {
+    adjusted += 15; // likely a punch / limited club
+  }
+
+  return adjusted;
+}
+
+function pickClub(adjustedDistance, shotNumber, troubleLong, aggression) {
+  // Short game logic first
+  if (adjustedDistance <= 40) {
+    if (adjustedDistance <= 15) {
+      return {
+        club: "Sand Wedge",
+        swing: "chip",
+        note: "Treat this like a chip/pitch, focus on landing spot not full carry."
+      };
+    }
+    return {
+      club: "Gap Wedge",
+      swing: "pitch",
+      note: "Small, controlled pitch. Prioritize solid contact over max spin."
+    };
+  }
+
+  // For full swings, choose the club whose stock_carry is closest to adjustedDistance
+  let best = null;
+  let bestDiff = Infinity;
+
+  bag.forEach((c) => {
+    const diff = Math.abs(c.stock_carry - adjustedDistance);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      best = c;
+    }
+  });
+
+  if (!best) return null;
+
+  // If trouble long is death (water/OB), bias slightly shorter (take less club or softer swing)
+  let swing = "stock";
+  let extraNote = "";
+
+  if (troubleLong === "water" || troubleLong === "ob") {
+    if (best.stock_carry > adjustedDistance + 8) {
+      // okay, we have cushion
+      extraNote =
+        "Be very aware of the long trouble. Pick a target that keeps a miss short or middle.";
+    } else {
+      // might be hot – suggest smoother swing or 1 club less
+      swing = "smooth";
+      extraNote =
+        "Long is dead. Favor a smooth swing or one less club, and play to the front/safer part of green.";
+    }
+  } else if (aggression === "aggressive") {
+    swing = "full";
+    extraNote =
+      "You selected attacking mindset. Commit to the swing, but pick a target that still keeps your big miss in play.";
+  } else if (aggression === "conservative") {
+    swing = "smooth";
+    extraNote =
+      "Conservative choice—focus on center-of-green or widest fairway section, not the hero line.";
+  }
+
+  return {
+    club: best.club,
+    swing,
+    note: extraNote
+  };
+}
+
+function buildTargetStrategy(input) {
+  const { troubleLeft, troubleRight, stockMiss, windDir } = input;
+
+  let line = "Aim at center target.";
+  let safetyNotes = [];
+
+  // Avoid trouble sides first
+  if (
+    troubleLeft === "water" ||
+    troubleLeft === "ob" ||
+    troubleLeft === "bunker"
+  ) {
+    line = "Favor the right side of your target.";
+    safetyNotes.push("Avoid the left—too much trouble there.");
+  } else if (
+    troubleRight === "water" ||
+    troubleRight === "ob" ||
+    troubleRight === "bunker"
+  ) {
+    line = "Favor the left side of your target.";
+    safetyNotes.push("Avoid the right—too much trouble there.");
+  }
+
+  // Factor in typical miss
+  if (stockMiss === "pull hook") {
+    safetyNotes.push("You tend to miss left—aim a little more right than you think.");
+  } else if (stockMiss === "push fade") {
+    safetyNotes.push("You tend to miss right—aim a little more left than you think.");
+  }
+
+  // Wind cross
+  if (windDir === "cross_left") {
+    safetyNotes.push("Wind is pushing left-to-right—allow for drift right.");
+  } else if (windDir === "cross_right") {
+    safetyNotes.push("Wind is pushing right-to-left—allow for drift left.");
+  }
+
+  return {
+    line,
+    safetyNotes
+  };
+}
+
+// ---------- CADDY FORM HANDLERS ----------
+
+function caddyValNum(id, fallback = 0) {
+  const el = document.getElementById(id);
+  if (!el) return fallback;
+  const v = parseFloat(el.value);
+  return Number.isNaN(v) ? fallback : v;
+}
+
+function caddyValStr(id, fallback = "") {
+  const el = document.getElementById(id);
+  if (!el) return fallback;
+  const v = el.value.trim();
+  return v || fallback;
+}
+
+function handleCaddyFormSubmit(event) {
+  event.preventDefault();
+
+  const distance = caddyValNum("caddyDistance");
+  if (!distance) {
+    alert("Enter a distance to the pin.");
+    return;
+  }
+
+  const par = caddyValStr("caddyPar", "4");
+  const shotNumber = caddyValStr("caddyShotNumber", "2");
+  const mindset = caddyValStr("caddyAggression", "normal");
+  const lie = caddyValStr("caddyLie", "fairway");
+  const windDir = caddyValStr("caddyWind", "calm");
+  const windSpeed = caddyValNum("caddyWindSpeed", 0);
+  const fairwayWidth = caddyValNum("caddyFairwayWidth", 0);
+  const troubleLeft = caddyValStr("caddyTroubleLeft", "none");
+  const troubleRight = caddyValStr("caddyTroubleRight", "none");
+  const troubleShort = caddyValStr("caddyTroubleShort", "none");
+  const troubleLong = caddyValStr("caddyTroubleLong", "none");
+
+  const adjusted = getAdjustedDistance(distance, windDir, windSpeed, lie);
+  const suggestion = pickClub(adjusted, shotNumber, troubleLong, mindset);
+
+  const outputEl = document.getElementById("caddyOutput");
+  if (!suggestion) {
+    outputEl.style.display = "block";
+    outputEl.innerHTML = `
+      <h3>No Suggestion</h3>
+      <p>Couldn't map that distance to your current bag. Check your bag data or try again.</p>
+    `;
+    return;
+  }
+
+  const target = buildTargetStrategy({
+    troubleLeft,
+    troubleRight,
+    stockMiss: playerProfile.typical_miss || "pull hook",
+    windDir
+  });
+
+  // Build explanation
+  const lines = [];
+
+  lines.push(
+    `<p><span class="highlight">${suggestion.club}</span> with a <span class="highlight">${suggestion.swing} swing</span> for <span class="highlight">${Math.round(
+      adjusted
+    )} yds effective</span> (adjusted for wind & lie).</p>`
+  );
+
+  lines.push(`<p><strong>Target line:</strong> ${target.line}</p>`);
+
+  if (suggestion.note) {
+    lines.push(`<p>${suggestion.note}</p>`);
+  }
+
+  if (target.safetyNotes.length) {
+    lines.push(
+      `<p><strong>Safety:</strong> ${target.safetyNotes.join(" ")} ${
+        troubleShort !== "none"
+          ? "Be very aware of the short trouble as well."
+          : ""
+      }</p>`
+    );
+  } else if (troubleShort !== "none" || troubleLong !== "none") {
+    lines.push(
+      `<p><strong>Safety:</strong> Respect ${
+        troubleShort !== "none" ? "the short" : ""
+      } ${troubleShort !== "none" && troubleLong !== "none" ? "and" : ""} ${
+        troubleLong !== "none" ? "long" : ""
+      } trouble. Favor a miss that stays in play.</p>`
+    );
+  }
+
+  // Mindset-specific final note
+  if (mindset === "aggressive") {
+    lines.push(
+      `<p>You're in <span class="highlight">attack mode</span>. Take dead aim only if your dispersion won't bring the big miss into the worst trouble.</p>`
+    );
+  } else if (mindset === "conservative") {
+    lines.push(
+      `<p>You're in <span class="highlight">conservative mode</span>. Play for the fat part of the fairway/green and accept a longer putt or next shot.</p>`
+    );
+  } else {
+    lines.push(
+      `<p>Normal mindset: solid contact and good target selection will beat hero shots 9 times out of 10.</p>`
+    );
+  }
+
+  outputEl.style.display = "block";
+  outputEl.innerHTML = `<h3>Caddy Suggestion</h3>${lines.join("")}`;
+}
+
+function clearCaddyOutput() {
+  const outputEl = document.getElementById("caddyOutput");
+  if (outputEl) {
+    outputEl.style.display = "none";
+    outputEl.innerHTML = "";
+  }
+  const form = document.getElementById("caddyForm");
+  if (form) form.reset();
 }
 
 // ---------- INIT ----------
@@ -627,16 +780,14 @@ document.addEventListener("DOMContentLoaded", () => {
   loadRoundsFromStorage();
 
   const summary = calcSummary(rounds);
-  const focus = getPracticeFocus(summary);
 
   updateProfileUI(playerProfile, summary);
   updateSummaryStatsUI(summary);
   updateRoundsTable(rounds);
-  updatePracticeFocusUI(summary, focus);
 
-  const form = document.getElementById("roundForm");
-  if (form) {
-    form.addEventListener("submit", handleRoundFormSubmit);
+  const roundForm = document.getElementById("roundForm");
+  if (roundForm) {
+    roundForm.addEventListener("submit", handleRoundFormSubmit);
   }
 
   const resetBtn = document.getElementById("resetRoundsBtn");
@@ -649,12 +800,20 @@ document.addEventListener("DOMContentLoaded", () => {
       ) {
         resetRoundsToDefault();
         const summary = calcSummary(rounds);
-        const focus = getPracticeFocus(summary);
         updateProfileUI(playerProfile, summary);
         updateSummaryStatsUI(summary);
         updateRoundsTable(rounds);
-        updatePracticeFocusUI(summary, focus);
       }
     });
+  }
+
+  const caddyForm = document.getElementById("caddyForm");
+  if (caddyForm) {
+    caddyForm.addEventListener("submit", handleCaddyFormSubmit);
+  }
+
+  const clearCaddyBtn = document.getElementById("clearCaddyBtn");
+  if (clearCaddyBtn) {
+    clearCaddyBtn.addEventListener("click", clearCaddyOutput);
   }
 });
