@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Player Performance Dashboard</title>
+  <title>Player Performance Dashboard + Virtual Caddy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -284,63 +284,7 @@
       margin-top: 0.12rem;
     }
 
-    /* Focus & rounds */
-
-    .focus-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-      margin-top: 0.3rem;
-    }
-
-    .focus-card {
-      border-radius: 14px;
-      padding: 0.7rem 0.8rem;
-      border: 1px solid rgba(53, 200, 122, 0.35);
-      background: linear-gradient(
-        135deg,
-        rgba(9, 23, 18, 0.97),
-        rgba(8, 12, 17, 0.97)
-      );
-    }
-
-    .focus-title-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .focus-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    .focus-tag {
-      padding: 0.2rem 0.55rem;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent);
-      border: 1px solid rgba(53, 200, 122, 0.6);
-      background: rgba(0, 0, 0, 0.4);
-    }
-
-    .focus-body {
-      margin-top: 0.35rem;
-      font-size: 0.83rem;
-      color: var(--muted);
-    }
-
-    .focus-metric {
-      margin-top: 0.4rem;
-      font-size: 0.78rem;
-    }
-
-    .focus-metric strong {
-      color: var(--text);
-    }
+    /* Rounds table */
 
     .rounds-table-wrapper {
       margin-top: 0.4rem;
@@ -394,18 +338,6 @@
       color: var(--muted);
     }
 
-    .stat-good {
-      color: var(--accent);
-    }
-
-    .stat-warning {
-      color: var(--warning);
-    }
-
-    .stat-bad {
-      color: var(--danger);
-    }
-
     .footer-note {
       margin-top: 1.2rem;
       font-size: 0.76rem;
@@ -413,9 +345,10 @@
       opacity: 0.85;
     }
 
-    /* Add Round Form */
+    /* Forms (Add Round + Caddy) */
 
-    .round-form-grid {
+    .round-form-grid,
+    .caddy-form-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.5rem 0.6rem;
@@ -423,13 +356,15 @@
     }
 
     @media (max-width: 900px) {
-      .round-form-grid {
+      .round-form-grid,
+      .caddy-form-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
     @media (max-width: 550px) {
-      .round-form-grid {
+      .round-form-grid,
+      .caddy-form-grid {
         grid-template-columns: repeat(1, minmax(0, 1fr));
       }
     }
@@ -447,7 +382,8 @@
       color: var(--muted);
     }
 
-    .field-group input {
+    .field-group input,
+    .field-group select {
       border-radius: 999px;
       border: 1px solid rgba(70, 86, 120, 0.9);
       background: rgba(4, 8, 14, 0.95);
@@ -457,7 +393,8 @@
       outline: none;
     }
 
-    .field-group input:focus {
+    .field-group input:focus,
+    .field-group select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 1px rgba(53, 200, 122, 0.45);
     }
@@ -503,14 +440,41 @@
       font-size: 0.72rem;
       color: var(--muted);
     }
+
+    .caddy-output {
+      margin-top: 0.9rem;
+      font-size: 0.83rem;
+      color: var(--muted);
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(4, 8, 14, 0.96);
+      padding: 0.75rem 0.8rem;
+    }
+
+    .caddy-output h3 {
+      margin: 0 0 0.4rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .caddy-output p {
+      margin: 0.25rem 0;
+    }
+
+    .caddy-output .highlight {
+      color: var(--text);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
   <div class="page">
     <header>
       <div class="title-block">
-        <h1>Player Performance Dashboard</h1>
-        <p>Tracking decisions, outcomes, and where your next strokes gained are hiding.</p>
+        <h1>Player Dashboard & Virtual Caddy</h1>
+        <p>Track your game, then make smarter decisions mid-round.</p>
       </div>
       <div class="pill">
         <span class="dot"></span>
@@ -747,22 +711,129 @@
         </article>
       </section>
 
-      <!-- Right column -->
+      <!-- Right column: Virtual Caddy + Category Snapshot -->
       <section>
-        <!-- Practice focus -->
+        <!-- Virtual Caddy -->
         <article class="card">
           <div class="card-inner">
             <div class="card-header">
               <div>
-                <div class="card-title">Practice Focus</div>
-                <div class="card-subtitle">Rules-driven suggestions from your Virtual Caddy Brain.</div>
+                <div class="card-title">Virtual Caddy – Shot Planner</div>
+                <div class="card-subtitle">Use this mid-round to choose club, shot, and target.</div>
               </div>
-              <span class="badge">Rules Engine</span>
+              <span class="badge">Live Use</span>
             </div>
 
-            <div id="focusList" class="focus-list">
-              <!-- Filled by JS -->
-            </div>
+            <form id="caddyForm">
+              <div class="caddy-form-grid">
+                <div class="field-group">
+                  <label for="caddyDistance">Distance to Pin (yds)</label>
+                  <input type="number" id="caddyDistance" min="10" max="350" required />
+                </div>
+                <div class="field-group">
+                  <label for="caddyPar">Hole Par</label>
+                  <select id="caddyPar">
+                    <option value="3">Par 3</option>
+                    <option value="4" selected>Par 4</option>
+                    <option value="5">Par 5</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label for="caddyShotNumber">Shot #</label>
+                  <select id="caddyShotNumber">
+                    <option value="1">Tee Shot</option>
+                    <option value="2" selected>Second Shot</option>
+                    <option value="3">Third+</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label for="caddyAggression">Mindset</label>
+                  <select id="caddyAggression">
+                    <option value="conservative">Conservative</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="aggressive">Attacking</option>
+                  </select>
+                </div>
+
+                <div class="field-group">
+                  <label for="caddyLie">Lie</label>
+                  <select id="caddyLie">
+                    <option value="tee">Tee</option>
+                    <option value="fairway" selected>Fairway</option>
+                    <option value="rough">Rough</option>
+                    <option value="sand">Bunker</option>
+                    <option value="recovery">Recovery/Under Trees</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label for="caddyWind">Wind Dir</label>
+                  <select id="caddyWind">
+                    <option value="calm" selected>Calm</option>
+                    <option value="into">Into</option>
+                    <option value="down">Downwind</option>
+                    <option value="cross_left">Cross (L→R)</option>
+                    <option value="cross_right">Cross (R→L)</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label for="caddyWindSpeed">Wind (mph)</label>
+                  <input type="number" id="caddyWindSpeed" min="0" max="40" value="5" />
+                </div>
+                <div class="field-group">
+                  <label for="caddyFairwayWidth">Fairway Width (yds)</label>
+                  <input type="number" id="caddyFairwayWidth" min="10" max="60" placeholder="Optional" />
+                </div>
+
+                <div class="field-group">
+                  <label for="caddyTroubleLeft">Left Trouble</label>
+                  <select id="caddyTroubleLeft">
+                    <option value="none" selected>None</option>
+                    <option value="rough">Rough/Trees</option>
+                    <option value="bunker">Bunker</option>
+                    <option value="water">Water</option>
+                    <option value="ob">OB</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label for="caddyTroubleRight">Right Trouble</label>
+                  <select id="caddyTroubleRight">
+                    <option value="none" selected>None</option>
+                    <option value="rough">Rough/Trees</option>
+                    <option value="bunker">Bunker</option>
+                    <option value="water">Water</option>
+                    <option value="ob">OB</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label for="caddyTroubleShort">Short Trouble</label>
+                  <select id="caddyTroubleShort">
+                    <option value="none" selected>None</option>
+                    <option value="bunker">Bunker</option>
+                    <option value="water">Water</option>
+                    <option value="ob">OB</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label for="caddyTroubleLong">Long Trouble</label>
+                  <select id="caddyTroubleLong">
+                    <option value="none" selected>None</option>
+                    <option value="bunker">Bunker</option>
+                    <option value="water">Water</option>
+                    <option value="ob">OB</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-primary">Get Caddy Advice</button>
+                <button type="button" id="clearCaddyBtn" class="btn-secondary">Clear</button>
+              </div>
+              <div class="small-hint">
+                Fill the basics, hit "Get Caddy Advice," and use the suggestion as a sanity check, not a commandment.
+              </div>
+            </form>
+
+            <div id="caddyOutput" class="caddy-output" style="display:none;"></div>
           </div>
         </article>
 
