@@ -1,17 +1,10 @@
-// ---------- SAMPLE DATA (you can replace this later) ----------
+// ---------- STORAGE CONFIG ----------
 
-const playerProfile = {
-  name: "Nick",
-  handicap_estimate: 10,
-  stock_shot_shape: "slight draw",
-  typical_miss: "pull hook",
-  aggression_level: "moderate",
-  course_management_style: "avoid_big_numbers_first",
-  notes:
-    "Comfortable hitting knockdown wedges, prefers conservative lines off the tee when hazards are in play."
-};
+const STORAGE_KEY = "golf_dashboard_rounds_v1";
 
-const rounds = [
+// ---------- SAMPLE DATA (used as fallback / reset) ----------
+
+const defaultRounds = [
   {
     date: "2025-11-15",
     course: "Diamond Hills CC",
@@ -86,7 +79,23 @@ const rounds = [
   }
 ];
 
-// Practice focus rules – same logic we talked about earlier.
+let rounds = [];
+
+// ---------- PLAYER PROFILE ----------
+
+const playerProfile = {
+  name: "Nick",
+  handicap_estimate: 10,
+  stock_shot_shape: "slight draw",
+  typical_miss: "pull hook",
+  aggression_level: "moderate",
+  course_management_style: "avoid_big_numbers_first",
+  notes:
+    "Comfortable hitting knockdown wedges, prefers conservative lines off the tee when hazards are in play."
+};
+
+// ---------- PRACTICE FOCUS RULES ----------
+
 const practiceFocusRules = [
   {
     id: "focus_short_game",
@@ -125,14 +134,48 @@ const practiceFocusRules = [
   }
 ];
 
+// ---------- STORAGE HELPERS ----------
+
+function loadRoundsFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      rounds = [...defaultRounds];
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length) {
+      rounds = parsed;
+    } else {
+      rounds = [...defaultRounds];
+    }
+  } catch (e) {
+    console.warn("Failed to load rounds from storage, using defaults.", e);
+    rounds = [...defaultRounds];
+  }
+}
+
+function saveRoundsToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rounds));
+  } catch (e) {
+    console.warn("Failed to save rounds to storage.", e);
+  }
+}
+
+function resetRoundsToDefault() {
+  rounds = [...defaultRounds];
+  saveRoundsToStorage();
+}
+
 // ---------- CALC HELPERS ----------
 
-function calcSummary(rounds) {
-  if (!rounds.length) {
+function calcSummary(roundsArr) {
+  if (!roundsArr.length) {
     return null;
   }
 
-  const totalRounds = rounds.length;
+  const totalRounds = roundsArr.length;
   let scoringTotal = 0;
   let firHit = 0;
   let firPossible = 0;
@@ -153,26 +196,26 @@ function calcSummary(rounds) {
   let par5Score = 0,
     par5Holes = 0;
 
-  rounds.forEach((r) => {
-    scoringTotal += r.score;
-    firHit += r.fir_hit;
-    firPossible += r.fir_possible;
-    girHit += r.gir_hit;
-    girPossible += r.gir_possible;
-    upDownSuccess += r.up_and_down_success;
-    upDownAttempts += r.up_and_down_attempts;
-    sandSuccess += r.sand_saves_success;
-    sandAttempts += r.sand_saves_attempts;
-    puttsTotal += r.putts;
-    threePuttsTotal += r.three_putts;
-    penaltyTotal += r.penalty_strokes;
+  roundsArr.forEach((r) => {
+    scoringTotal += r.score || 0;
+    firHit += r.fir_hit || 0;
+    firPossible += r.fir_possible || 0;
+    girHit += r.gir_hit || 0;
+    girPossible += r.gir_possible || 0;
+    upDownSuccess += r.up_and_down_success || 0;
+    upDownAttempts += r.up_and_down_attempts || 0;
+    sandSuccess += r.sand_saves_success || 0;
+    sandAttempts += r.sand_saves_attempts || 0;
+    puttsTotal += r.putts || 0;
+    threePuttsTotal += r.three_putts || 0;
+    penaltyTotal += r.penalty_strokes || 0;
 
-    par3Score += r.par3_score;
-    par3Holes += r.par3_holes;
-    par4Score += r.par4_score;
-    par4Holes += r.par4_holes;
-    par5Score += r.par5_score;
-    par5Holes += r.par5_holes;
+    par3Score += r.par3_score || 0;
+    par3Holes += r.par3_holes || 0;
+    par4Score += r.par4_score || 0;
+    par4Holes += r.par4_holes || 0;
+    par5Score += r.par5_score || 0;
+    par5Holes += r.par5_holes || 0;
   });
 
   const scoringAverage = scoringTotal / totalRounds;
@@ -184,9 +227,9 @@ function calcSummary(rounds) {
   const sandSavePercentage = sandAttempts
     ? (sandSuccess / sandAttempts) * 100
     : 0;
-  const puttsPerRound = puttsTotal / totalRounds;
-  const threePuttRate = threePuttsTotal / totalRounds;
-  const penaltyStrokesPerRound = penaltyTotal / totalRounds;
+  const puttsPerRound = totalRounds ? puttsTotal / totalRounds : 0;
+  const threePuttRate = totalRounds ? threePuttsTotal / totalRounds : 0;
+  const penaltyStrokesPerRound = totalRounds ? penaltyTotal / totalRounds : 0;
 
   const par3Avg = par3Holes ? par3Score / par3Holes : 0;
   const par4Avg = par4Holes ? par4Score / par4Holes : 0;
@@ -221,7 +264,6 @@ function formatNumber(val, decimals = 1) {
 function doesSummaryMatchConditions(summary, conditions) {
   if (!conditions) return true;
 
-  // For each *possible* key, check if there's a bound and compare.
   if (
     conditions.up_and_down_percentage_max !== undefined &&
     summary.up_and_down_percentage > conditions.up_and_down_percentage_max
@@ -265,7 +307,6 @@ function getPracticeFocus(summary) {
   if (!summary) return [];
 
   const matches = [];
-
   practiceFocusRules.forEach((rule) => {
     if (doesSummaryMatchConditions(summary, rule.conditions)) {
       matches.push(rule);
@@ -312,11 +353,25 @@ function updateProfileUI(profile, summary) {
     document.getElementById(
       "roundSampleLabel"
     ).textContent = `Based on last ${summary.sample_size_rounds} rounds`;
+  } else {
+    document.getElementById("roundSampleLabel").textContent =
+      "Add a round to start tracking.";
   }
 }
 
 function updateSummaryStatsUI(summary) {
-  if (!summary) return;
+  if (!summary) {
+    document.getElementById("statScoringAvg").textContent = "—";
+    document.getElementById("statFIR").textContent = "—";
+    document.getElementById("statGIR").textContent = "—";
+    document.getElementById("statPutts").textContent = "—";
+    document.getElementById("statThreePuttRate").textContent = "—";
+    document.getElementById("statPenalties").textContent = "—";
+    document.getElementById("statPar3Avg").textContent = "—";
+    document.getElementById("statPar4Avg").textContent = "—";
+    document.getElementById("statPar5Avg").textContent = "—";
+    return;
+  }
 
   document.getElementById("statScoringAvg").textContent = formatNumber(
     summary.scoring_average,
@@ -359,11 +414,11 @@ function updateSummaryStatsUI(summary) {
   ).textContent = `Target: shave 2–3 strokes from this number.`;
 }
 
-function updateRoundsTable(rounds) {
+function updateRoundsTable(roundsArr) {
   const tbody = document.getElementById("roundsTableBody");
   tbody.innerHTML = "";
 
-  rounds.forEach((r) => {
+  roundsArr.forEach((r) => {
     const tr = document.createElement("tr");
 
     const firPct = r.fir_possible
@@ -373,24 +428,26 @@ function updateRoundsTable(rounds) {
       ? (r.gir_hit / r.gir_possible) * 100
       : 0;
 
+    const courseLabel = r.tees
+      ? `${r.course} (${r.tees})`
+      : r.course;
+
     tr.innerHTML = `
       <td>${r.date}</td>
-      <td>
-        <span class="round-tag">${r.course}</span>
-      </td>
+      <td><span class="round-tag">${courseLabel}</span></td>
       <td>${r.score}</td>
       <td>${firPct.toFixed(0)}%</td>
       <td>${girPct.toFixed(0)}%</td>
-      <td>${r.putts}</td>
-      <td>${r.three_putts}</td>
-      <td>${r.penalty_strokes}</td>
+      <td>${r.putts ?? "—"}</td>
+      <td>${r.three_putts ?? "—"}</td>
+      <td>${r.penalty_strokes ?? 0}</td>
     `;
 
     tbody.appendChild(tr);
   });
 
   const badge = document.getElementById("roundCountBadge");
-  badge.textContent = `${rounds.length} Rounds`;
+  badge.textContent = `${roundsArr.length} Round${roundsArr.length === 1 ? "" : "s"}`;
 }
 
 function updatePracticeFocusUI(summary, focusRulesMatched) {
@@ -427,10 +484,7 @@ function updatePracticeFocusUI(summary, focusRulesMatched) {
     let metricLine = "";
     if (rule.metricKey && summary[rule.metricKey] !== undefined) {
       const val = summary[rule.metricKey];
-      const formatted =
-        rule.metricKey.includes("percentage") || rule.metricKey.includes("rate")
-          ? formatNumber(val, 1)
-          : formatNumber(val, 1);
+      const formatted = formatNumber(val, 1);
       metricLine = `<div class="focus-metric"><strong>${rule.metricLabel}:</strong> ${formatted}</div>`;
     } else if (rule.metricKeys && rule.metricKeys.length) {
       const parts = rule.metricKeys
@@ -471,9 +525,91 @@ function updatePracticeFocusUI(summary, focusRulesMatched) {
   });
 }
 
-// ---------- INIT ----------
+// ---------- FORM HANDLING ----------
 
-document.addEventListener("DOMContentLoaded", () => {
+function valNum(id, fallback = 0) {
+  const el = document.getElementById(id);
+  if (!el) return fallback;
+  const v = parseFloat(el.value);
+  return Number.isNaN(v) ? fallback : v;
+}
+
+function valStr(id, fallback = "") {
+  const el = document.getElementById(id);
+  if (!el) return fallback;
+  const v = el.value.trim();
+  return v || fallback;
+}
+
+function clearForm() {
+  const form = document.getElementById("roundForm");
+  if (form) form.reset();
+}
+
+function handleRoundFormSubmit(event) {
+  event.preventDefault();
+
+  const date = valStr("roundDate");
+  const course = valStr("roundCourse");
+  const score = valNum("roundScore");
+
+  if (!date || !course || !score) {
+    alert("Please enter at least date, course, and score.");
+    return;
+  }
+
+  const tees = valStr("roundTees", "");
+
+  const firHit = valNum("firHit", 0);
+  const firPossible = valNum("firPossible", 14);
+  const girHit = valNum("girHit", 0);
+  const girPossible = valNum("girPossible", 18);
+
+  const upDownSuccess = valNum("upDownSuccess", 0);
+  const upDownAttempts = valNum("upDownAttempts", 0);
+  const sandSuccess = valNum("sandSuccess", 0);
+  const sandAttempts = valNum("sandAttempts", 0);
+
+  const putts = valNum("putts", 0);
+  const threePutts = valNum("threePutts", 0);
+  const penalties = valNum("penalties", 0);
+  const holes = valNum("holes", 18);
+
+  const par3Score = valNum("par3Score", 0);
+  const par3Holes = valNum("par3Holes", 0);
+  const par4Score = valNum("par4Score", 0);
+  const par4Holes = valNum("par4Holes", 0);
+  const par5Score = valNum("par5Score", 0);
+  const par5Holes = valNum("par5Holes", 0);
+
+  const newRound = {
+    date,
+    course,
+    tees,
+    score,
+    holes,
+    fir_hit: firHit,
+    fir_possible: firPossible,
+    gir_hit: girHit,
+    gir_possible: girPossible,
+    up_and_down_success: upDownSuccess,
+    up_and_down_attempts: upDownAttempts,
+    sand_saves_success: sandSuccess,
+    sand_saves_attempts: sandAttempts,
+    putts,
+    three_putts: threePutts,
+    penalty_strokes: penalties,
+    par3_score: par3Score,
+    par3_holes: par3Holes,
+    par4_score: par4Score,
+    par4_holes: par4Holes,
+    par5_score: par5Score,
+    par5_holes: par5Holes
+  };
+
+  rounds.push(newRound);
+  saveRoundsToStorage();
+
   const summary = calcSummary(rounds);
   const focus = getPracticeFocus(summary);
 
@@ -481,4 +617,44 @@ document.addEventListener("DOMContentLoaded", () => {
   updateSummaryStatsUI(summary);
   updateRoundsTable(rounds);
   updatePracticeFocusUI(summary, focus);
+
+  clearForm();
+}
+
+// ---------- INIT ----------
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadRoundsFromStorage();
+
+  const summary = calcSummary(rounds);
+  const focus = getPracticeFocus(summary);
+
+  updateProfileUI(playerProfile, summary);
+  updateSummaryStatsUI(summary);
+  updateRoundsTable(rounds);
+  updatePracticeFocusUI(summary, focus);
+
+  const form = document.getElementById("roundForm");
+  if (form) {
+    form.addEventListener("submit", handleRoundFormSubmit);
+  }
+
+  const resetBtn = document.getElementById("resetRoundsBtn");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      if (
+        confirm(
+          "Reset to sample data? This will overwrite your saved rounds in this browser."
+        )
+      ) {
+        resetRoundsToDefault();
+        const summary = calcSummary(rounds);
+        const focus = getPracticeFocus(summary);
+        updateProfileUI(playerProfile, summary);
+        updateSummaryStatsUI(summary);
+        updateRoundsTable(rounds);
+        updatePracticeFocusUI(summary, focus);
+      }
+    });
+  }
 });
