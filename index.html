@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Player Performance Dashboard + Virtual Caddy</title>
+  <title>Player Dashboard & Virtual Caddy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -348,7 +348,8 @@
     /* Forms (Add Round + Caddy) */
 
     .round-form-grid,
-    .caddy-form-grid {
+    .caddy-form-grid,
+    .caddy-course-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.5rem 0.6rem;
@@ -357,14 +358,16 @@
 
     @media (max-width: 900px) {
       .round-form-grid,
-      .caddy-form-grid {
+      .caddy-form-grid,
+      .caddy-course-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
     @media (max-width: 550px) {
       .round-form-grid,
-      .caddy-form-grid {
+      .caddy-form-grid,
+      .caddy-course-grid {
         grid-template-columns: repeat(1, minmax(0, 1fr));
       }
     }
@@ -466,6 +469,16 @@
     .caddy-output .highlight {
       color: var(--text);
       font-weight: 600;
+    }
+
+    .hole-info {
+      margin-top: 0.4rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .hole-info strong {
+      color: var(--text);
     }
   </style>
 </head>
@@ -721,10 +734,35 @@
                 <div class="card-title">Virtual Caddy – Shot Planner</div>
                 <div class="card-subtitle">Use this mid-round to choose club, shot, and target.</div>
               </div>
-              <span class="badge">Live Use</span>
+              <span class="badge">On Course</span>
             </div>
 
-            <form id="caddyForm">
+            <!-- Course / Hole selection -->
+            <div class="caddy-course-grid" style="margin-bottom:0.6rem;">
+              <div class="field-group">
+                <label for="courseSelect">Course</label>
+                <select id="courseSelect"></select>
+              </div>
+              <div class="field-group">
+                <label for="holeSelect">Hole</label>
+                <select id="holeSelect"></select>
+              </div>
+              <div class="field-group">
+                <label for="teeSelect">Tees</label>
+                <select id="teeSelect"></select>
+              </div>
+              <div class="field-group">
+                <label>&nbsp;</label>
+                <button type="button" id="gpsButton" class="btn-secondary">Use GPS for Distance</button>
+              </div>
+            </div>
+
+            <div class="hole-info" id="holeInfo">
+              <!-- Filled by JS -->
+            </div>
+            <div class="small-hint" id="gpsStatus" style="margin-top:0.25rem;"></div>
+
+            <form id="caddyForm" style="margin-top:0.9rem;">
               <div class="caddy-form-grid">
                 <div class="field-group">
                   <label for="caddyDistance">Distance to Pin (yds)</label>
@@ -829,7 +867,7 @@
                 <button type="button" id="clearCaddyBtn" class="btn-secondary">Clear</button>
               </div>
               <div class="small-hint">
-                Fill the basics, hit "Get Caddy Advice," and use the suggestion as a sanity check, not a commandment.
+                GPS fills the distance. Use the suggestion as a sanity check, not a commandment.
               </div>
             </form>
 
