@@ -2,82 +2,84 @@
 
 const STORAGE_KEY = "golf_dashboard_rounds_v1";
 
-// ---------- SAMPLE DATA ----------
+// ---------- SAMPLE COURSE DATA (replace with your real JSON later) ----------
+// This is just a sketch. Plug your real lat/lngs in here.
 
-const defaultRounds = [
-  {
-    date: "2025-11-15",
-    course: "Diamond Hills CC",
-    tees: "White",
-    score: 82,
-    holes: 18,
-    fir_hit: 9,
-    fir_possible: 14,
-    gir_hit: 8,
-    gir_possible: 18,
-    up_and_down_success: 4,
-    up_and_down_attempts: 9,
-    sand_saves_success: 1,
-    sand_saves_attempts: 3,
-    putts: 32,
-    three_putts: 3,
-    penalty_strokes: 2,
-    par3_score: 12,
-    par3_holes: 4,
-    par4_score: 54,
-    par4_holes: 10,
-    par5_score: 16,
-    par5_holes: 4
+const COURSES = {
+  diamond_hills: {
+    id: "diamond_hills",
+    name: "Diamond Hills CC",
+    holes: [
+      {
+        number: 1,
+        par: 4,
+        handicap: 7,
+        tees: {
+          White: { lat: 36.4501, lng: -93.0201 },
+          Blue: { lat: 36.4500, lng: -93.0203 }
+        },
+        green: { lat: 36.4520, lng: -93.0188 },
+        yardage: { White: 365, Blue: 390 }
+      },
+      {
+        number: 2,
+        par: 3,
+        handicap: 15,
+        tees: {
+          White: { lat: 36.4525, lng: -93.0180 },
+          Blue: { lat: 36.4526, lng: -93.0183 }
+        },
+        green: { lat: 36.4537, lng: -93.0171 },
+        yardage: { White: 155, Blue: 170 }
+      },
+      {
+        number: 3,
+        par: 5,
+        handicap: 3,
+        tees: {
+          White: { lat: 36.4540, lng: -93.0179 },
+          Blue: { lat: 36.4541, lng: -93.0182 }
+        },
+        green: { lat: 36.4570, lng: -93.0140 },
+        yardage: { White: 495, Blue: 520 }
+      }
+    ]
   },
-  {
-    date: "2025-11-23",
-    course: "Harrison CC",
-    tees: "Blue",
-    score: 84,
-    holes: 18,
-    fir_hit: 7,
-    fir_possible: 14,
-    gir_hit: 7,
-    gir_possible: 18,
-    up_and_down_success: 3,
-    up_and_down_attempts: 10,
-    sand_saves_success: 0,
-    sand_saves_attempts: 2,
-    putts: 34,
-    three_putts: 2,
-    penalty_strokes: 3,
-    par3_score: 13,
-    par3_holes: 4,
-    par4_score: 55,
-    par4_holes: 10,
-    par5_score: 16,
-    par5_holes: 4
+  harrison_cc: {
+    id: "harrison_cc",
+    name: "Harrison CC",
+    holes: [
+      {
+        number: 1,
+        par: 4,
+        handicap: 5,
+        tees: {
+          White: { lat: 36.2460, lng: -93.1070 },
+          Blue: { lat: 36.2459, lng: -93.1074 }
+        },
+        green: { lat: 36.2477, lng: -93.1059 },
+        yardage: { White: 380, Blue: 405 }
+      }
+    ]
   },
-  {
-    date: "2025-12-02",
-    course: "Holiday Island GC",
-    tees: "White",
-    score: 80,
-    holes: 18,
-    fir_hit: 10,
-    fir_possible: 14,
-    gir_hit: 9,
-    gir_possible: 18,
-    up_and_down_success: 5,
-    up_and_down_attempts: 9,
-    sand_saves_success: 1,
-    sand_saves_attempts: 2,
-    putts: 30,
-    three_putts: 1,
-    penalty_strokes: 1,
-    par3_score: 11,
-    par3_holes: 4,
-    par4_score: 52,
-    par4_holes: 10,
-    par5_score: 17,
-    par5_holes: 4
+  holiday_island: {
+    id: "holiday_island",
+    name: "Holiday Island GC",
+    holes: [
+      {
+        number: 1,
+        par: 4,
+        handicap: 9,
+        tees: {
+          White: { lat: 36.4865, lng: -93.7482 },
+          Blue: { lat: 36.4867, lng: -93.7485 }
+        },
+        green: { lat: 36.4880, lng: -93.7473 },
+        yardage: { White: 360, Blue: 385 }
+      }
+    ]
   }
-];
+};
 
 let rounds = [];
 
@@ -169,6 +171,83 @@ const bag = [
     type: "wedge",
     stock_carry: 80,
     max_carry: 90
+  }
+];
+
+// ---------- SAMPLE ROUNDS (for stats) ----------
+
+const defaultRounds = [
+  {
+    date: "2025-11-15",
+    course: "Diamond Hills CC",
+    tees: "White",
+    score: 82,
+    holes: 18,
+    fir_hit: 9,
+    fir_possible: 14,
+    gir_hit: 8,
+    gir_possible: 18,
+    up_and_down_success: 4,
+    up_and_down_attempts: 9,
+    sand_saves_success: 1,
+    sand_saves_attempts: 3,
+    putts: 32,
+    three_putts: 3,
+    penalty_strokes: 2,
+    par3_score: 12,
+    par3_holes: 4,
+    par4_score: 54,
+    par4_holes: 10,
+    par5_score: 16,
+    par5_holes: 4
+  },
+  {
+    date: "2025-11-23",
+    course: "Harrison CC",
+    tees: "Blue",
+    score: 84,
+    holes: 18,
+    fir_hit: 7,
+    fir_possible: 14,
+    gir_hit: 7,
+    gir_possible: 18,
+    up_and_down_success: 3,
+    up_and_down_attempts: 10,
+    sand_saves_success: 0,
+    sand_saves_attempts: 2,
+    putts: 34,
+    three_putts: 2,
+    penalty_strokes: 3,
+    par3_score: 13,
+    par3_holes: 4,
+    par4_score: 55,
+    par4_holes: 10,
+    par5_score: 16,
+    par5_holes: 4
+  },
+  {
+    date: "2025-12-02",
+    course: "Holiday Island GC",
+    tees: "White",
+    score: 80,
+    holes: 18,
+    fir_hit: 10,
+    fir_possible: 14,
+    gir_hit: 9,
+    gir_possible: 18,
+    up_and_down_success: 5,
+    up_and_down_attempts: 9,
+    sand_saves_success: 1,
+    sand_saves_attempts: 2,
+    putts: 30,
+    three_putts: 1,
+    penalty_strokes: 1,
+    par3_score: 11,
+    par3_holes: 4,
+    par4_score: 52,
+    par4_holes: 10,
+    par5_score: 17,
+    par5_holes: 4
   }
 ];
 
@@ -375,7 +454,8 @@ function updateSummaryStatsUI(summary) {
   ).textContent = formatNumber(summary.three_putt_rate, 2);
   document.getElementById(
     "statPenalties"
-  ).textContent = formatNumber(summary.penalty_strokes_per_round, 1);
+  ).textContent = formatNumber(summary.penalty_strokes_per_round, 1
+  );
 
   document.getElementById("statPar3Avg").textContent = formatNumber(
     summary.par3_avg,
@@ -517,7 +597,6 @@ function handleRoundFormSubmit(event) {
   saveRoundsToStorage();
 
   const summary = calcSummary(rounds);
-
   updateProfileUI(playerProfile, summary);
   updateSummaryStatsUI(summary);
   updateRoundsTable(rounds);
@@ -525,32 +604,29 @@ function handleRoundFormSubmit(event) {
   clearRoundForm();
 }
 
-// ---------- VIRTUAL CADDY ENGINE ----------
+// ---------- VIRTUAL CADDY: DISTANCE & CLUB PICK ----------
 
 function getAdjustedDistance(distance, windDir, windSpeed, lie) {
   let adjusted = distance;
 
-  // Wind adjustment – rough but practical
   if (windDir === "into") {
-    adjusted += windSpeed * 0.8; // into wind: plays longer
+    adjusted += windSpeed * 0.8;
   } else if (windDir === "down") {
-    adjusted -= windSpeed * 0.5; // downwind: plays shorter
+    adjusted -= windSpeed * 0.5;
   }
 
-  // Lie penalty
   if (lie === "rough") {
-    adjusted += 5; // ball comes out slower
+    adjusted += 5;
   } else if (lie === "sand") {
     adjusted += 10;
   } else if (lie === "recovery") {
-    adjusted += 15; // likely a punch / limited club
+    adjusted += 15;
   }
 
   return adjusted;
 }
 
 function pickClub(adjustedDistance, shotNumber, troubleLong, aggression) {
-  // Short game logic first
   if (adjustedDistance <= 40) {
     if (adjustedDistance <= 15) {
       return {
@@ -566,7 +642,6 @@ function pickClub(adjustedDistance, shotNumber, troubleLong, aggression) {
     };
   }
 
-  // For full swings, choose the club whose stock_carry is closest to adjustedDistance
   let best = null;
   let bestDiff = Infinity;
 
@@ -580,17 +655,14 @@ function pickClub(adjustedDistance, shotNumber, troubleLong, aggression) {
 
   if (!best) return null;
 
-  // If trouble long is death (water/OB), bias slightly shorter (take less club or softer swing)
   let swing = "stock";
   let extraNote = "";
 
   if (troubleLong === "water" || troubleLong === "ob") {
     if (best.stock_carry > adjustedDistance + 8) {
-      // okay, we have cushion
       extraNote =
         "Be very aware of the long trouble. Pick a target that keeps a miss short or middle.";
     } else {
-      // might be hot – suggest smoother swing or 1 club less
       swing = "smooth";
       extraNote =
         "Long is dead. Favor a smooth swing or one less club, and play to the front/safer part of green.";
@@ -618,7 +690,6 @@ function buildTargetStrategy(input) {
   let line = "Aim at center target.";
   let safetyNotes = [];
 
-  // Avoid trouble sides first
   if (
     troubleLeft === "water" ||
     troubleLeft === "ob" ||
@@ -635,14 +706,12 @@ function buildTargetStrategy(input) {
     safetyNotes.push("Avoid the right—too much trouble there.");
   }
 
-  // Factor in typical miss
   if (stockMiss === "pull hook") {
     safetyNotes.push("You tend to miss left—aim a little more right than you think.");
   } else if (stockMiss === "push fade") {
     safetyNotes.push("You tend to miss right—aim a little more left than you think.");
   }
 
-  // Wind cross
   if (windDir === "cross_left") {
     safetyNotes.push("Wind is pushing left-to-right—allow for drift right.");
   } else if (windDir === "cross_right") {
@@ -653,6 +722,192 @@ function buildTargetStrategy(input) {
     line,
     safetyNotes
   };
+}
+
+// ---------- VIRTUAL CADDY: GPS + COURSE SELECTION ----------
+
+// Haversine distance in yards
+function distanceYards(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // meters
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const meters = R * c;
+  const yards = meters * 1.09361;
+  return yards;
+}
+
+function getSelectedCourse() {
+  const select = document.getElementById("courseSelect");
+  if (!select) return null;
+  const id = select.value;
+  return COURSES[id] || null;
+}
+
+function getSelectedHole() {
+  const course = getSelectedCourse();
+  const holeSelect = document.getElementById("holeSelect");
+  if (!course || !holeSelect) return null;
+  const num = parseInt(holeSelect.value, 10);
+  return course.holes.find((h) => h.number === num) || null;
+}
+
+function getSelectedTeeName() {
+  const teeSelect = document.getElementById("teeSelect");
+  if (!teeSelect) return null;
+  return teeSelect.value || null;
+}
+
+function initCourseSelectors() {
+  const courseSelect = document.getElementById("courseSelect");
+  const holeSelect = document.getElementById("holeSelect");
+  const teeSelect = document.getElementById("teeSelect");
+
+  if (!courseSelect || !holeSelect || !teeSelect) return;
+
+  // Populate course select
+  courseSelect.innerHTML = "";
+  Object.values(COURSES).forEach((course) => {
+    const opt = document.createElement("option");
+    opt.value = course.id;
+    opt.textContent = course.name;
+    courseSelect.appendChild(opt);
+  });
+
+  courseSelect.value = "diamond_hills";
+
+  function populateHoles() {
+    const course = getSelectedCourse();
+    holeSelect.innerHTML = "";
+    if (!course) return;
+    course.holes.forEach((hole) => {
+      const opt = document.createElement("option");
+      opt.value = hole.number;
+      opt.textContent = `Hole ${hole.number}`;
+      holeSelect.appendChild(opt);
+    });
+    holeSelect.value = course.holes[0]?.number ?? "";
+  }
+
+  function populateTees() {
+    const hole = getSelectedHole();
+    teeSelect.innerHTML = "";
+    if (!hole) return;
+    const teeNames = Object.keys(hole.tees || {});
+    teeNames.forEach((name) => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      teeSelect.appendChild(opt);
+    });
+    if (teeNames.includes("White")) {
+      teeSelect.value = "White";
+    } else {
+      teeSelect.value = teeNames[0] || "";
+    }
+  }
+
+  courseSelect.addEventListener("change", () => {
+    populateHoles();
+    populateTees();
+    updateHoleInfoUI();
+  });
+
+  holeSelect.addEventListener("change", () => {
+    populateTees();
+    updateHoleInfoUI();
+  });
+
+  teeSelect.addEventListener("change", () => {
+    updateHoleInfoUI();
+  });
+
+  populateHoles();
+  populateTees();
+  updateHoleInfoUI();
+}
+
+function updateHoleInfoUI() {
+  const infoEl = document.getElementById("holeInfo");
+  const parSelect = document.getElementById("caddyPar");
+  if (!infoEl || !parSelect) return;
+
+  const course = getSelectedCourse();
+  const hole = getSelectedHole();
+  const teeName = getSelectedTeeName();
+
+  if (!course || !hole) {
+    infoEl.textContent = "Select a course and hole to see details.";
+    return;
+  }
+
+  const yardage =
+    hole.yardage && teeName && hole.yardage[teeName]
+      ? hole.yardage[teeName]
+      : null;
+
+  parSelect.value = String(hole.par);
+
+  infoEl.innerHTML = `
+    <strong>${course.name}</strong> – Hole ${hole.number}
+    • Par ${hole.par}
+    ${yardage ? `• ${yardage} yds (${teeName})` : ""}
+    • HCP ${hole.handicap ?? "—"}
+  `;
+}
+
+// Use browser GPS to set distance to green
+function useGpsForDistance() {
+  const gpsStatus = document.getElementById("gpsStatus");
+  const distanceInput = document.getElementById("caddyDistance");
+
+  if (!navigator.geolocation) {
+    if (gpsStatus) {
+      gpsStatus.textContent =
+        "GPS not supported in this browser. Try on your phone's browser.";
+    }
+    return;
+  }
+
+  const hole = getSelectedHole();
+  if (!hole || !hole.green) {
+    if (gpsStatus) gpsStatus.textContent = "Missing green coordinates for this hole.";
+    return;
+  }
+
+  gpsStatus.textContent = "Getting GPS position...";
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      const yards = distanceYards(
+        latitude,
+        longitude,
+        hole.green.lat,
+        hole.green.lng
+      );
+      const rounded = Math.round(yards);
+
+      distanceInput.value = rounded;
+      gpsStatus.textContent = `Distance set from GPS: ~${rounded} yds straight-line to center of green.`;
+    },
+    (err) => {
+      console.warn("GPS error:", err);
+      gpsStatus.textContent =
+        "Could not get GPS location. Check permissions or signal.";
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 5000,
+      timeout: 15000
+    }
+  );
 }
 
 // ---------- CADDY FORM HANDLERS ----------
@@ -676,7 +931,7 @@ function handleCaddyFormSubmit(event) {
 
   const distance = caddyValNum("caddyDistance");
   if (!distance) {
-    alert("Enter a distance to the pin.");
+    alert("Enter a distance to the pin (or use GPS).");
     return;
   }
 
@@ -712,7 +967,6 @@ function handleCaddyFormSubmit(event) {
     windDir
   });
 
-  // Build explanation
   const lines = [];
 
   lines.push(
@@ -745,7 +999,6 @@ function handleCaddyFormSubmit(event) {
     );
   }
 
-  // Mindset-specific final note
   if (mindset === "aggressive") {
     lines.push(
       `<p>You're in <span class="highlight">attack mode</span>. Take dead aim only if your dispersion won't bring the big miss into the worst trouble.</p>`
@@ -807,6 +1060,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  initCourseSelectors();
+
   const caddyForm = document.getElementById("caddyForm");
   if (caddyForm) {
     caddyForm.addEventListener("submit", handleCaddyFormSubmit);
@@ -815,5 +1070,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearCaddyBtn = document.getElementById("clearCaddyBtn");
   if (clearCaddyBtn) {
     clearCaddyBtn.addEventListener("click", clearCaddyOutput);
+  }
+
+  const gpsButton = document.getElementById("gpsButton");
+  if (gpsButton) {
+    gpsButton.addEventListener("click", useGpsForDistance);
   }
 });
